@@ -182,6 +182,30 @@ static void opinfo_del(struct oplock_info *opinfo)
 	write_unlock(&ci->m_lock);
 }
 
+static unsigned long opinfo_count(struct ksmbd_file *fp)
+{
+	if (ksmbd_stream_fd(fp))
+		return atomic_read(&fp->f_ci->sop_count);
+	else
+		return atomic_read(&fp->f_ci->op_count);
+}
+
+static void opinfo_count_inc(struct ksmbd_file *fp)
+{
+	if (ksmbd_stream_fd(fp))
+		return atomic_inc(&fp->f_ci->sop_count);
+	else
+		return atomic_inc(&fp->f_ci->op_count);
+}
+
+static void opinfo_count_dec(struct ksmbd_file *fp)
+{
+	if (ksmbd_stream_fd(fp))
+		return atomic_dec(&fp->f_ci->sop_count);
+	else
+		return atomic_dec(&fp->f_ci->op_count);
+}
+
 /**
  * opinfo_write_to_read() - convert a write oplock to read oplock
  * @opinfo:		current oplock info
@@ -352,7 +376,7 @@ void close_id_del_oplock(struct ksmbd_file *fp)
 		}
 	}
 
-	atomic_dec(&fp->f_ci->op_count);
+	opinfo_count_dec(fp);
 	opinfo_put(opinfo);
 }
 
@@ -488,7 +512,8 @@ static struct oplock_info *same_client_has_lease(struct ksmbd_inode *ci,
 			}
 
 			/* upgrading lease */
-			if (atomic_read(&ci->op_count) == 1) {
+			if ((atomic_read(&ci->op_count) +
+			     atomic_read(&ci->sop_count)) == 1) {
 				if (lease->state ==
 					(lctx->req_state & lease->state)) {
 					lease->state |= lctx->req_state;
@@ -496,7 +521,8 @@ static struct oplock_info *same_client_has_lease(struct ksmbd_inode *ci,
 						SMB2_LEASE_WRITE_CACHING_LE)
 						lease_read_to_write(opinfo);
 				}
-			} else if (atomic_read(&ci->op_count) > 1) {
+			} else if ((atomic_read(&ci->op_count) +
+				    atomic_read(&ci->sop_count)) > 1) {
 				if (lctx->req_state ==
 					(SMB2_LEASE_READ_CACHING_LE |
 					 SMB2_LEASE_HANDLE_CACHING_LE))
@@ -1091,7 +1117,7 @@ int smb_grant_oplock(struct ksmbd_work *work,
 	}
 
 	/* ci does not have any oplock */
-	if (!atomic_read(&ci->op_count))
+	if (!opinfo_count(fp))
 		goto set_lev;
 
 	/* grant none-oplock if second open is trunc */
@@ -1168,7 +1194,8 @@ set_lev:
 out:
 	rcu_assign_pointer(fp->f_opinfo, opinfo);
 	opinfo->o_fp = fp;
-	atomic_inc(&ci->op_count);
+
+	opinfo_count_inc(fp);
 	opinfo_add(opinfo);
 	if (opinfo->is_lease)
 		add_lease_global_list(opinfo);
