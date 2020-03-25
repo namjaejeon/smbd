@@ -813,7 +813,7 @@ static int smb2_lease_break_noti(struct oplock_info *opinfo)
 	} else {
 		atomic_inc(&conn->r_count);
 		__smb2_lease_break_noti(&work->work);
-		if (opinfo->o_lease->state == SMB2_LEASE_READ_CACHING_LE) {
+		if (opinfo->o_lease->new_state == SMB2_LEASE_NONE_LE) {
 			opinfo->level = SMB2_OPLOCK_LEVEL_NONE;
 			opinfo->o_lease->state = SMB2_LEASE_NONE_LE;
 		}
