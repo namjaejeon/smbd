@@ -823,9 +823,10 @@ static int smb2_lease_break_noti(struct oplock_info *opinfo)
 
 static void wait_lease_breaking(struct oplock_info *opinfo)
 {
-	if (!atomic_read(&opinfo->breaking_cnt))
-		wake_up_interruptible(&opinfo->oplock_brk);
+	if (!opinfo->is_lease)
+		return;
 
+	wake_up_interruptible(&opinfo->oplock_brk);
 	if (atomic_read(&opinfo->breaking_cnt)) {
 		int ret = 0;
 
