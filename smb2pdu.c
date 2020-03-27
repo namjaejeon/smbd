@@ -7413,10 +7413,11 @@ static int smb21_lease_break_ack(struct ksmbd_work *work)
 	}
 
 	lease_state = lease->state;
-	atomic_dec(&opinfo->breaking_cnt);
-	opinfo_put(opinfo);
 	opinfo->op_state = OPLOCK_STATE_NONE;
 	wake_up_interruptible(&opinfo->oplock_q);
+	atomic_dec(&opinfo->breaking_cnt);
+	wake_up_interruptible(&opinfo->oplock_brk);
+	opinfo_put(opinfo);
 
 	if (ret < 0) {
 		rsp->hdr.Status = err;
