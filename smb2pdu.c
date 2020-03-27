@@ -7349,7 +7349,7 @@ static int smb21_lease_break_ack(struct ksmbd_work *work)
 	if (check_lease_state(lease, req->LeaseState)) {
 		rsp->hdr.Status = STATUS_REQUEST_NOT_ACCEPTED;
 		ksmbd_debug("req lease state: 0x%x, expected state: 0x%x\n",
-				lease->new_state, req->LeaseState);
+				req->LeaseState, lease->new_state);
 		goto err_out;
 	}
 
