@@ -849,8 +849,7 @@ static int oplock_break(struct oplock_info *brk_opinfo, int req_op_level)
 	if (brk_opinfo->is_lease) {
 		struct lease *lease = brk_opinfo->o_lease;
 
-		if (!(lease->state == SMB2_LEASE_READ_CACHING_LE))
-			atomic_inc(&brk_opinfo->breaking_cnt);
+		atomic_inc(&brk_opinfo->breaking_cnt);
 
 		err = oplock_break_pending(brk_opinfo, req_op_level);
 		if (err)
@@ -883,6 +882,8 @@ static int oplock_break(struct oplock_info *brk_opinfo, int req_op_level)
 		if (lease->state & (SMB2_LEASE_WRITE_CACHING_LE |
 				SMB2_LEASE_HANDLE_CACHING_LE))
 			brk_opinfo->op_state = OPLOCK_ACK_WAIT;
+		else
+			atomic_dec(&brk_opinfo->breaking_cnt);
 	} else {
 		err = oplock_break_pending(brk_opinfo, req_op_level);
 		if (err)
