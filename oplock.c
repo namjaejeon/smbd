@@ -880,8 +880,7 @@ static int oplock_break(struct oplock_info *brk_opinfo, int req_op_level)
 			}
 		}
 
-		if (!brk_opinfo->open_trunc ||
-			lease->state & (SMB2_LEASE_WRITE_CACHING_LE |
+		if (lease->state & (SMB2_LEASE_WRITE_CACHING_LE |
 				SMB2_LEASE_HANDLE_CACHING_LE))
 			brk_opinfo->op_state = OPLOCK_ACK_WAIT;
 	} else {
