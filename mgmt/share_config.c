@@ -3,6 +3,7 @@
  *   Copyright (C) 2018 Samsung Electronics Co., Ltd.
  */
 
+#include <linux/cred.h>
 #include <linux/list.h>
 #include <linux/jhash.h>
 #include <linux/slab.h>
@@ -11,6 +12,8 @@
 #include <linux/namei.h>
 
 #include "share_config.h"
+#include "user_config.h"
+#include "user_session.h"
 #include "../buffer_pool.h"
 #include "../transport_ipc.h"
 #include "../ksmbd_server.h" /* FIXME */
@@ -243,4 +246,39 @@ void ksmbd_share_configs_cleanup(void)
 		kill_share(share);
 	}
 	up_write(&shares_table_lock);
+}
+
+const struct cred *ksmbd_override_fsids(struct ksmbd_session *sess,
+		struct ksmbd_share_config *share)
+{
+	struct cred *cred;
+	unsigned int uid = user_uid(sess->user);
+	unsigned int gid = user_gid(sess->user);
+
+	if (share->force_uid != 0)
+		uid = share->force_uid;
+	if (share->force_gid != 0)
+		gid = share->force_gid;
+
+	cred = prepare_kernel_cred(NULL);
+	if (!cred)
+		return ERR_PTR(-ENOMEM);
+
+	cred->fsuid = make_kuid(current_user_ns(), uid);
+	cred->fsgid = make_kgid(current_user_ns(), gid);
+	if (!uid_eq(cred->fsuid, GLOBAL_ROOT_UID))
+		cred->cap_effective = cap_drop_fs_set(cred->cap_effective);
+
+	return override_creds(cred);
+}
+
+void ksmbd_revert_fsids(const struct cred *old_cred)
+{
+	if (!IS_ERR_OR_NULL(old_cred)) {
+		const struct cred *cred;
+
+		cred = current->cred;
+		revert_creds(old_cred);
+		put_cred(cred);
+	}
 }

@@ -56,22 +56,6 @@ static void roolback_path_modification(char *filename)
 	}
 }
 
-static void ksmbd_vfs_inode_uid_gid(struct ksmbd_work *work,
-				    struct inode *inode)
-{
-	struct ksmbd_share_config *share = work->tcon->share_conf;
-	unsigned int uid = user_uid(work->sess->user);
-	unsigned int gid = user_gid(work->sess->user);
-
-	if (share->force_uid != 0)
-		uid = share->force_uid;
-	if (share->force_gid != 0)
-		gid = share->force_gid;
-
-	i_uid_write(inode, uid);
-	i_gid_write(inode, gid);
-}
-
 static void ksmbd_vfs_inherit_owner(struct ksmbd_work *work,
 				    struct inode *parent_inode,
 				    struct inode *inode)
@@ -152,7 +136,6 @@ int ksmbd_vfs_create(struct ksmbd_work *work,
 	mode |= S_IFREG;
 	err = vfs_create(d_inode(path.dentry), dentry, mode, true);
 	if (!err) {
-		ksmbd_vfs_inode_uid_gid(work, d_inode(dentry));
 		ksmbd_vfs_inherit_owner(work, d_inode(path.dentry),
 			d_inode(dentry));
 		ksmbd_vfs_inherit_smack(work, path.dentry, dentry);
@@ -191,7 +174,6 @@ int ksmbd_vfs_mkdir(struct ksmbd_work *work,
 	mode |= S_IFDIR;
 	err = vfs_mkdir(d_inode(path.dentry), dentry, mode);
 	if (!err) {
-		ksmbd_vfs_inode_uid_gid(work, d_inode(dentry));
 		ksmbd_vfs_inherit_owner(work, d_inode(path.dentry),
 			d_inode(dentry));
 		ksmbd_vfs_inherit_smack(work, path.dentry, dentry);
