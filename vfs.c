@@ -108,6 +108,42 @@ out:
 	ksmbd_vfs_xattr_free(xattr_list);
 }
 
+int ksmbd_vfs_inode_permission(struct dentry *dentry, int acc_mode, bool delete)
+{
+	int mask;
+
+	mask = 0;
+	acc_mode &= O_ACCMODE;
+
+	if (acc_mode == O_RDONLY)
+		mask = MAY_READ;
+	else if (acc_mode == O_WRONLY)
+		mask = MAY_WRITE;
+	else if (acc_mode == O_RDWR)
+		mask = MAY_READ | MAY_WRITE;
+
+	if (inode_permission(d_inode(dentry),
+				MAY_OPEN | mask)) {
+		ksmbd_debug("User does not have right permission\n");
+		return -EACCES;
+	}
+
+	if (delete) {
+		struct dentry *parent;
+
+		parent = dget_parent(dentry);
+		if (!parent)
+			return -EINVAL;
+
+		if (inode_permission(d_inode(parent), MAY_WRITE)) {
+			dput(parent);
+			return -EACCES;
+		}
+		dput(parent);
+	}
+	return 0;
+}
+
 /**
  * ksmbd_vfs_create() - vfs helper for smb create file
  * @work:	work
