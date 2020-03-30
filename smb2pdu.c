@@ -2586,6 +2586,10 @@ int smb2_open(struct ksmbd_work *work)
 	}
 
 	if (rc) {
+		if (rc == -EACCES) {
+			ksmbd_debug("User does not have right permission\n");
+			goto err_out;
+		}
 		ksmbd_debug("can not get linux path for %s, rc = %d\n",
 				name, rc);
 		rc = 0;
