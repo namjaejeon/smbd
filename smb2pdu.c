@@ -670,6 +670,7 @@ smb2_get_name(struct ksmbd_share_config *share,
 
 	/* change it to absolute unix name */
 	ksmbd_conv_path_to_unix(name);
+	ksmbd_strip_last_slash(name);
 
 	unixname = convert_to_unix_name(share, name);
 	kfree(name);
