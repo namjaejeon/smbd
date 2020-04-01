@@ -10,6 +10,7 @@
 #include <linux/rwsem.h>
 #include <linux/parser.h>
 #include <linux/namei.h>
+#include <linux/sched.h>
 
 #include "share_config.h"
 #include "user_config.h"
