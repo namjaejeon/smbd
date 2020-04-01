@@ -5268,6 +5268,9 @@ static int set_file_allocation_info(struct ksmbd_work *work,
 	struct inode *inode;
 	int rc;
 
+	if (!is_attributes_write_allowed(fp))
+		return -EACCES;
+
 	file_alloc_info = (struct smb2_file_alloc_info *)buf;
 	alloc_blks = (le64_to_cpu(file_alloc_info->AllocationSize) + 511) >> 9;
 	inode = file_inode(fp->filp);
