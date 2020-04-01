@@ -2573,8 +2573,6 @@ int smb2_open(struct ksmbd_work *work)
 			}
 		}
 	} else {
-
-
 		if (test_share_config_flag(work->tcon->share_conf,
 					KSMBD_SHARE_FLAG_FOLLOW_SYMLINKS)) {
 			/*
