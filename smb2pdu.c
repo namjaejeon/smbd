@@ -1656,7 +1656,8 @@ static int smb2_create_open_flags(bool file_present, __le32 access,
 		oflags |= O_RDWR;
 	else if (access & FILE_READ_DATA_LE  || access & FILE_GENERIC_READ_LE)
 		oflags |= O_RDONLY;
-	else if (access & FILE_WRITE_DATA_LE || access & FILE_GENERIC_WRITE_LE)
+	else if (access & FILE_WRITE_DATA_LE || access & FILE_DELETE_LE ||
+			access & FILE_GENERIC_WRITE_LE)
 		oflags |= O_WRONLY;
 	else
 		oflags |= O_RDONLY;
