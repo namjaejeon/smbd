@@ -254,7 +254,7 @@ bool ksmbd_conn_alive(struct ksmbd_conn *conn)
 	if (server_conf.deadtime > 0 &&
 		time_after(jiffies, conn->last_active + server_conf.deadtime)) {
 		ksmbd_debug("No response from client in %lu minutes\n",
-			server_conf.deadtime);
+			server_conf.deadtime / SMB_ECHO_INTERVAL);
 		return false;
 	}
 	return true;
