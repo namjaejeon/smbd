@@ -5313,6 +5313,9 @@ static int set_end_of_file_info(struct ksmbd_work *work,
 	struct inode *inode;
 	int rc;
 
+	if (!is_attributes_write_allowed(fp))
+		return -EACCES;
+
 	file_eof_info = (struct smb2_file_eof_info *)buf;
 	newsize = le64_to_cpu(file_eof_info->EndOfFile);
 	inode = file_inode(fp->filp);
