@@ -5147,6 +5147,14 @@ out:
 	return rc;
 }
 
+static bool is_attributes_write_allowed(struct ksmbd_file *fp)
+{
+	return fp->daccess & (FILE_WRITE_ATTRIBUTES_LE |
+				FILE_GENERIC_WRITE_LE |
+				FILE_MAXIMAL_ACCESS_LE |
+				FILE_GENERIC_ALL_LE);
+}
+
 static int set_file_basic_info(struct ksmbd_file *fp,
 			       char *buf,
 			       struct ksmbd_share_config *share)
@@ -5158,13 +5166,8 @@ static int set_file_basic_info(struct ksmbd_file *fp,
 	struct inode *inode;
 	int rc;
 
-	if (!(fp->daccess & (FILE_WRITE_ATTRIBUTES_LE |
-				FILE_GENERIC_WRITE_LE |
-				FILE_MAXIMAL_ACCESS_LE |
-				FILE_GENERIC_ALL_LE))) {
-		ksmbd_err("Not permitted to write attrs: 0x%x\n", fp->daccess);
+	if (!is_attributes_write_allowed(fp))
 		return -EACCES;
-	}
 
 	file_info = (struct smb2_file_all_info *)buf;
 	attrs.ia_valid = 0;
