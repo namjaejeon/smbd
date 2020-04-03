@@ -49,16 +49,6 @@ config SMB_SERVER_SMBDIRECT
 	  SMB Direct allows transferring SMB packets over RDMA. If unsure,
 	  say N.
 
-config SMB_SERVER_DEBUGGING
-	bool "Enable verbose debugging code"
-	depends on SMB_SERVER
-	default n
-
-	help
-	  This adds a lot of debugging code, which is compiled out
-	  otherwise. Verbose debugging code increases the size of
-	  the kernel module quite considerably.
-
 config SMB_SERVER_CHECK_CAP_NET_ADMIN
 	bool "Enable check network administration capability"
 	depends on SMB_SERVER

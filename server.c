@@ -22,9 +22,7 @@
 #include "mgmt/user_session.h"
 #include "crypto_ctx.h"
 
-#ifdef CONFIG_SMB_SERVER_DEBUGGING
 int ksmbd_debug_types;
-#endif
 
 struct ksmbd_server_config server_conf;
 

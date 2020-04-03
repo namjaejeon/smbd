@@ -1727,11 +1727,9 @@ int smb2_tree_disconnect(struct ksmbd_work *work)
 	ksmbd_debug(SMB, "request\n");
 
 	if (!tcon) {
-#ifdef CONFIG_SMB_SERVER_DEBUGGING
 		struct smb2_tree_disconnect_req *req = REQUEST_BUF(work);
 
 		ksmbd_debug(SMB, "Invalid tid %d\n", req->hdr.Id.SyncId.TreeId);
-#endif
 		rsp->hdr.Status = STATUS_NETWORK_NAME_DELETED;
 		smb2_set_err_rsp(work);
 		return 0;
@@ -1768,11 +1766,9 @@ int smb2_session_logoff(struct ksmbd_work *work)
 	ksmbd_conn_wait_idle(conn);
 
 	if (ksmbd_tree_conn_session_logoff(sess)) {
-#ifdef CONFIG_SMB_SERVER_DEBUGGING
 		struct smb2_logoff_req *req = REQUEST_BUF(work);
 
 		ksmbd_debug(SMB, "Invalid tid %d\n", req->hdr.Id.SyncId.TreeId);
-#endif
 		rsp->hdr.Status = STATUS_NETWORK_NAME_DELETED;
 		smb2_set_err_rsp(work);
 		return 0;
@@ -2522,14 +2518,12 @@ int smb2_open(struct ksmbd_work *work)
 			if (rc < 0)
 				goto err_out1;
 		} else {
-#ifdef CONFIG_SMB_SERVER_DEBUGGING
 			struct create_mxac_req *mxac_req =
 				(struct create_mxac_req *)context;
 
 			ksmbd_debug(SMB,
 				"get query maximal access context (timestamp : %llu)\n",
 				le64_to_cpu(mxac_req->Timestamp));
-#endif
 			maximal_access = tcon->maximal_access;
 		}
 

@@ -41,7 +41,6 @@ extern int ksmbd_caseless_search;
 #endif
 #endif
 
-#ifdef CONFIG_SMB_SERVER_DEBUGGING
 #define ksmbd_debug(type, fmt, ...)				\
 	do {							\
 		if (ksmbd_debug_types & type)			\
@@ -50,9 +49,6 @@ extern int ksmbd_caseless_search;
 				__LINE__,			\
 				##__VA_ARGS__);			\
 	} while (0)
-#else
-#define ksmbd_debug(type, fmt, ...)	do { } while (0)
-#endif
 
 #define ksmbd_info(fmt, ...)					\
 			pr_info(ksmbd_pr_fmt(fmt), ##__VA_ARGS__)
