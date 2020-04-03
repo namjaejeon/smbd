@@ -19,6 +19,9 @@
 #include "../transport_ipc.h"
 #include "../ksmbd_server.h" /* FIXME */
 
+#define SHARE_INVALID_UID	((__u16)-1)
+#define SHARE_INVALID_GID	((__u16)-1)
+
 #define SHARE_HASH_BITS		3
 static DEFINE_HASHTABLE(shares_table, SHARE_HASH_BITS);
 static DECLARE_RWSEM(shares_table_lock);
@@ -256,9 +259,9 @@ const struct cred *ksmbd_override_fsids(struct ksmbd_session *sess,
 	unsigned int uid = user_uid(sess->user);
 	unsigned int gid = user_gid(sess->user);
 
-	if (share->force_uid != 0)
+	if (share->force_uid != SHARE_INVALID_UID)
 		uid = share->force_uid;
-	if (share->force_gid != 0)
+	if (share->force_gid != SHARE_INVALID_GID)
 		gid = share->force_gid;
 
 	cred = prepare_kernel_cred(NULL);
