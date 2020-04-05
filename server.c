@@ -494,10 +494,10 @@ static ssize_t debug_store(struct class *class,
 
 	for (i = 0; i < 7; i++) {
 		if (sysfs_streq(buf, "all")) {
-			if (ksmbd_debug_types == ALL)
+			if (ksmbd_debug_types == KSMBD_DEBUG_ALL)
 				ksmbd_debug_types = 0;
 			else
-				ksmbd_debug_types = ALL;
+				ksmbd_debug_types = KSMBD_DEBUG_ALL;
 			break;
 		}
 

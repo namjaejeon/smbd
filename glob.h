@@ -24,14 +24,17 @@ extern int ksmbd_caseless_search;
 #define DATA_STREAM	1
 #define DIR_STREAM	2
 
-#define SMB		(1 << 0)
-#define AUTH		(1 << 1)
-#define VFS		(1 << 2)
-#define OPLOCK		(1 << 3)
-#define IPC		(1 << 4)
-#define CONN		(1 << 5)
-#define RDMA		(1 << 6)
-#define ALL		(SMB | AUTH | VFS | OPLOCK | IPC | CONN | RDMA)
+#define KSMBD_DEBUG_SMB         (1 << 0)
+#define KSMBD_DEBUG_AUTH        (1 << 1)
+#define KSMBD_DEBUG_VFS         (1 << 2)
+#define KSMBD_DEBUG_OPLOCK      (1 << 3)
+#define KSMBD_DEBUG_IPC         (1 << 4)
+#define KSMBD_DEBUG_CONN        (1 << 5)
+#define KSMBD_DEBUG_RDMA        (1 << 6)
+#define KSMBD_DEBUG_ALL         (KSMBD_DEBUG_SMB | KSMBD_DEBUG_AUTH |	\
+				KSMBD_DEBUG_VFS | KSMBD_DEBUG_OPLOCK |	\
+				KSMBD_DEBUG_IPC | KSMBD_DEBUG_CONN |	\
+				KSMBD_DEBUG_RDMA)
 
 #ifndef ksmbd_pr_fmt
 #ifdef SUBMOD_NAME
@@ -43,7 +46,7 @@ extern int ksmbd_caseless_search;
 
 #define ksmbd_debug(type, fmt, ...)				\
 	do {							\
-		if (ksmbd_debug_types & type)			\
+		if (ksmbd_debug_types & KSMBD_DEBUG_##type)	\
 			pr_info(ksmbd_pr_fmt("%s:%d: " fmt),	\
 				__func__,			\
 				__LINE__,			\
