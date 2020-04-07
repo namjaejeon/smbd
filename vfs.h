@@ -135,7 +135,7 @@ int ksmbd_vfs_getattr(struct ksmbd_work *work, uint64_t fid,
 int ksmbd_vfs_setattr(struct ksmbd_work *work, const char *name,
 		uint64_t fid, struct iattr *attrs);
 int ksmbd_vfs_fsync(struct ksmbd_work *work, uint64_t fid, uint64_t p_id);
-int ksmbd_vfs_remove_file(char *name);
+int ksmbd_vfs_remove_file(struct ksmbd_work *work, char *name);
 int ksmbd_vfs_link(const char *oldname, const char *newname);
 int ksmbd_vfs_symlink(const char *name, const char *symname);
 int ksmbd_vfs_readlink(struct path *path, char *buf, int lenp);

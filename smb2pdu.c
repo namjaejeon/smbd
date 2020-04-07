@@ -5068,7 +5068,7 @@ static int smb2_rename(struct ksmbd_work *work, struct ksmbd_file *fp,
 
 	if (file_info->ReplaceIfExists) {
 		if (file_present) {
-			rc = ksmbd_vfs_remove_file(new_name);
+			rc = ksmbd_vfs_remove_file(work, new_name);
 			if (rc) {
 				if (rc != -ENOTEMPTY)
 					rc = -EINVAL;
@@ -5150,7 +5150,7 @@ static int smb2_create_link(struct ksmbd_work *work,
 
 	if (file_info->ReplaceIfExists) {
 		if (file_present) {
-			rc = ksmbd_vfs_remove_file(link_name);
+			rc = ksmbd_vfs_remove_file(work, link_name);
 			if (rc) {
 				rc = -EINVAL;
 				ksmbd_debug(SMB, "cannot delete %s\n",

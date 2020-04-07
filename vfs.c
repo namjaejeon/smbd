@@ -594,7 +594,7 @@ int ksmbd_vfs_fsync(struct ksmbd_work *work, uint64_t fid, uint64_t p_id)
  *
  * Return:	0 on success, otherwise error
  */
-int ksmbd_vfs_remove_file(char *name)
+int ksmbd_vfs_remove_file(struct ksmbd_work *work, char *name)
 {
 	struct path parent;
 	struct dentry *dir, *dentry;
@@ -605,9 +605,13 @@ int ksmbd_vfs_remove_file(char *name)
 	if (!last)
 		return -ENOENT;
 
+	if (ksmbd_override_fsids(work))
+		return -ENOMEM;
+
 	err = kern_path(name, LOOKUP_FOLLOW | LOOKUP_DIRECTORY, &parent);
 	if (err) {
 		ksmbd_debug(VFS, "can't get %s, err %d\n", name, err);
+		ksmbd_revert_fsids(work);
 		roolback_path_modification(last);
 		return err;
 	}
@@ -646,6 +650,7 @@ out_err:
 out:
 	roolback_path_modification(last);
 	path_put(&parent);
+	ksmbd_revert_fsids(work);
 	return err;
 }
 
