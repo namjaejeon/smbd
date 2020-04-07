@@ -140,8 +140,10 @@ int ksmbd_vfs_link(const char *oldname, const char *newname);
 int ksmbd_vfs_symlink(const char *name, const char *symname);
 int ksmbd_vfs_readlink(struct path *path, char *buf, int lenp);
 
-int ksmbd_vfs_fp_rename(struct ksmbd_file *fp, char *newname);
-int ksmbd_vfs_rename_slowpath(char *oldname, char *newname);
+int ksmbd_vfs_fp_rename(struct ksmbd_work *work, struct ksmbd_file *fp,
+		char *newname);
+int ksmbd_vfs_rename_slowpath(struct ksmbd_work *work,
+		char *oldname, char *newname);
 
 int ksmbd_vfs_truncate(struct ksmbd_work *work, const char *name,
 	struct ksmbd_file *fp, loff_t size);

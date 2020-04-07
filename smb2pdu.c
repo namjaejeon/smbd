@@ -4999,7 +4999,7 @@ static int smb2_rename(struct ksmbd_work *work, struct ksmbd_file *fp,
 	abs_oldname = d_path(&fp->filp->f_path, pathname, PATH_MAX);
 	if (IS_ERR(abs_oldname)) {
 		rc = -EINVAL;
-		goto out1;
+		goto out;
 	}
 	old_name = strrchr(abs_oldname, '/');
 	if (old_name && old_name[1] != '\0')
@@ -5008,7 +5008,7 @@ static int smb2_rename(struct ksmbd_work *work, struct ksmbd_file *fp,
 		ksmbd_debug(SMB, "can't get last component in path %s\n",
 				abs_oldname);
 		rc = -ENOENT;
-		goto out1;
+		goto out;
 	}
 
 	new_name = smb2_get_name(share,
@@ -5017,12 +5017,7 @@ static int smb2_rename(struct ksmbd_work *work, struct ksmbd_file *fp,
 				 local_nls);
 	if (IS_ERR(new_name)) {
 		rc = PTR_ERR(new_name);
-		goto out1;
-	}
-
-	if (ksmbd_override_fsids(work)) {
-		rc = -ENOMEM;
-		goto out1;
+		goto out;
 	}
 
 	if (strchr(new_name, ':')) {
@@ -5093,10 +5088,8 @@ static int smb2_rename(struct ksmbd_work *work, struct ksmbd_file *fp,
 		}
 	}
 
-	rc = ksmbd_vfs_fp_rename(fp, new_name);
+	rc = ksmbd_vfs_fp_rename(work, fp, new_name);
 out:
-	ksmbd_revert_fsids(work);
-out1:
 	kfree(pathname);
 	if (!IS_ERR(new_name))
 		smb2_put_name(new_name);

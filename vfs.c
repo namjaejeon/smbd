@@ -696,7 +696,8 @@ out1:
 	return err;
 }
 
-static int __ksmbd_vfs_rename(struct dentry *src_dent_parent,
+static int __ksmbd_vfs_rename(struct ksmbd_work *work,
+			      struct dentry *src_dent_parent,
 			      struct dentry *src_dent,
 			      struct dentry *dst_dent_parent,
 			      struct dentry *trap_dent,
@@ -730,6 +731,9 @@ static int __ksmbd_vfs_rename(struct dentry *src_dent_parent,
 	if (src_dent == trap_dent)
 		return -EINVAL;
 
+	if (ksmbd_override_fsids(work))
+		return -ENOMEM;
+
 	dst_dent = lookup_one_len(dst_name, dst_dent_parent, strlen(dst_name));
 	err = PTR_ERR(dst_dent);
 	if (IS_ERR(dst_dent)) {
@@ -750,10 +754,12 @@ static int __ksmbd_vfs_rename(struct dentry *src_dent_parent,
 		ksmbd_err("vfs_rename failed err %d\n", err);
 	if (dst_dent)
 		dput(dst_dent);
+	ksmbd_revert_fsids(work);
 	return err;
 }
 
-int ksmbd_vfs_fp_rename(struct ksmbd_file *fp, char *newname)
+int ksmbd_vfs_fp_rename(struct ksmbd_work *work, struct ksmbd_file *fp,
+		char *newname)
 {
 	struct path dst_path;
 	struct dentry *src_dent_parent, *dst_dent_parent;
@@ -774,14 +780,15 @@ int ksmbd_vfs_fp_rename(struct ksmbd_file *fp, char *newname)
 
 	err = kern_path(newname, LOOKUP_FOLLOW | LOOKUP_DIRECTORY, &dst_path);
 	if (err) {
-		ksmbd_err("Cannot get path for %s [%d]\n", newname, err);
+		ksmbd_debug(VFS, "Cannot get path for %s [%d]\n", newname, err);
 		goto out;
 	}
 	dst_dent_parent = dst_path.dentry;
 	dget(dst_dent_parent);
 
 	trap_dent = lock_rename(src_dent_parent, dst_dent_parent);
-	err = __ksmbd_vfs_rename(src_dent_parent,
+	err = __ksmbd_vfs_rename(work,
+				 src_dent_parent,
 				 src_dent,
 				 dst_dent_parent,
 				 trap_dent,
