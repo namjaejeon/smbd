@@ -5126,12 +5126,7 @@ static int smb2_create_link(struct ksmbd_work *work,
 				  local_nls);
 	if (IS_ERR(link_name) || S_ISDIR(file_inode(filp)->i_mode)) {
 		rc = -EINVAL;
-		goto out1;
-	}
-
-	if (ksmbd_override_fsids(work)) {
-		rc = -ENOMEM;
-		goto out1;
+		goto out;
 	}
 
 	ksmbd_debug(SMB, "link name is %s\n", link_name);
@@ -5166,12 +5161,10 @@ static int smb2_create_link(struct ksmbd_work *work,
 		}
 	}
 
-	rc = ksmbd_vfs_link(target_name, link_name);
+	rc = ksmbd_vfs_link(work, target_name, link_name);
 	if (rc)
 		rc = -EINVAL;
 out:
-	ksmbd_revert_fsids(work);
-out1:
 	if (!IS_ERR(link_name))
 		smb2_put_name(link_name);
 	kfree(pathname);

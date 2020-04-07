@@ -661,11 +661,15 @@ out:
  *
  * Return:	0 on success, otherwise error
  */
-int ksmbd_vfs_link(const char *oldname, const char *newname)
+int ksmbd_vfs_link(struct ksmbd_work *work,
+		const char *oldname, const char *newname)
 {
 	struct path oldpath, newpath;
 	struct dentry *dentry;
 	int err;
+
+	if (ksmbd_override_fsids(work))
+		return -ENOMEM;
 
 	err = kern_path(oldname, LOOKUP_FOLLOW, &oldpath);
 	if (err) {
@@ -696,8 +700,8 @@ out3:
 	done_path_create(&newpath, dentry);
 out2:
 	path_put(&oldpath);
-
 out1:
+	ksmbd_revert_fsids(work);
 	return err;
 }
 
