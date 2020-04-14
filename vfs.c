@@ -122,11 +122,8 @@ int ksmbd_vfs_inode_permission(struct dentry *dentry, int acc_mode, bool delete)
 	else if (acc_mode == O_RDWR)
 		mask = MAY_READ | MAY_WRITE;
 
-	if (inode_permission(d_inode(dentry),
-				MAY_OPEN | mask)) {
-		ksmbd_debug(VFS, "User does not have right permission\n");
+	if (inode_permission(d_inode(dentry), mask | MAY_OPEN))
 		return -EACCES;
-	}
 
 	if (delete) {
 		struct dentry *parent;
@@ -135,7 +132,7 @@ int ksmbd_vfs_inode_permission(struct dentry *dentry, int acc_mode, bool delete)
 		if (!parent)
 			return -EINVAL;
 
-		if (inode_permission(d_inode(parent), MAY_WRITE)) {
+		if (inode_permission(d_inode(parent), MAY_EXEC | MAY_WRITE)) {
 			dput(parent);
 			return -EACCES;
 		}
