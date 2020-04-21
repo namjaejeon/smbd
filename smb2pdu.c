@@ -7607,8 +7607,8 @@ int smb2_is_sign_req(struct ksmbd_work *work, unsigned int command)
 		return 1;
 
 	/* send session setup auth phase signed response */
-	if (work->sess->sign && command == SMB2_SESSION_SETUP_HE &&
-		work->sess)
+	if (work->sess && work->sess->sign &&
+		command == SMB2_SESSION_SETUP_HE)
 		return 1;
 
 	return 0;
