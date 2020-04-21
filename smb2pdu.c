@@ -2044,8 +2044,10 @@ static int smb2_set_ea(struct smb2_ea_info *eabuf, struct path *path)
 				le32_to_cpu(eabuf->NextEntryOffset));
 
 		if (eabuf->EaNameLength >
-				(XATTR_NAME_MAX - XATTR_USER_PREFIX_LEN))
-			return -EINVAL;
+				(XATTR_NAME_MAX - XATTR_USER_PREFIX_LEN)) {
+			rc = -EINVAL;
+			break;
+		}
 
 		memcpy(attr_name, XATTR_USER_PREFIX, XATTR_USER_PREFIX_LEN);
 		memcpy(&attr_name[XATTR_USER_PREFIX_LEN], eabuf->name,
