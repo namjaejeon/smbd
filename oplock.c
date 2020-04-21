@@ -1384,6 +1384,7 @@ struct lease_ctx_info *parse_lease_state(void *open_req)
 		return lreq;
 	}
 
+	kfree(lreq);
 	return NULL;
 }
 
