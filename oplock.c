@@ -1008,7 +1008,7 @@ static void copy_lease(struct oplock_info *op1, struct oplock_info *op2)
 	lease2->flags = lease1->flags;
 }
 
-static void add_lease_global_list(struct oplock_info *opinfo)
+static int add_lease_global_list(struct oplock_info *opinfo)
 {
 	struct lease_table *lb;
 
@@ -1019,12 +1019,15 @@ static void add_lease_global_list(struct oplock_info *opinfo)
 			opinfo->o_lease->l_lb = lb;
 			lease_add_list(opinfo);
 			read_unlock(&lease_list_lock);
-			return;
+			return 0;
 		}
 	}
 	read_unlock(&lease_list_lock);
 
 	lb = kmalloc(sizeof(struct lease_table), GFP_KERNEL);
+	if (!lb)
+		return -ENOMEM;
+
 	memcpy(lb->client_guid, opinfo->conn->ClientGUID,
 			SMB2_CLIENT_GUID_SIZE);
 	INIT_LIST_HEAD(&lb->lease_list);
@@ -1032,6 +1035,7 @@ static void add_lease_global_list(struct oplock_info *opinfo)
 	opinfo->o_lease->l_lb = lb;
 	lease_add_list(opinfo);
 	lb_add(lb);
+	return 0;
 }
 
 static void set_oplock_level(struct oplock_info *opinfo, int level,
@@ -1177,8 +1181,11 @@ out:
 
 	opinfo_count_inc(fp);
 	opinfo_add(opinfo);
-	if (opinfo->is_lease)
-		add_lease_global_list(opinfo);
+	if (opinfo->is_lease) {
+		err = add_lease_global_list(opinfo);
+		if (err)
+			goto err_out;
+	}
 
 	return 0;
 err_out:
