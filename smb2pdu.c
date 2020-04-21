@@ -1044,6 +1044,7 @@ int smb2_handle_negotiate(struct ksmbd_work *work)
 		if (!conn->preauth_info) {
 			rc = -ENOMEM;
 			rsp->hdr.Status = STATUS_INVALID_PARAMETER;
+			goto err_out;
 		}
 
 		status = deassemble_neg_contexts(conn, req);
