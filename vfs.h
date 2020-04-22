@@ -187,7 +187,8 @@ int ksmbd_vfs_fsetxattr(const char *filename,
 			int flags);
 
 int ksmbd_vfs_xattr_stream_name(char *stream_name,
-				char **xattr_stream_name);
+				char **xattr_stream_name,
+				size_t *xattr_stream_name_size);
 
 int ksmbd_vfs_truncate_xattr(struct dentry *dentry, int wo_streams);
 int ksmbd_vfs_remove_xattr(struct dentry *dentry, char *attr_name);

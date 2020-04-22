@@ -2111,12 +2111,15 @@ static noinline int smb2_set_stream_name_xattr(struct path *path,
 					       char *stream_name,
 					       int s_type)
 {
-	int xattr_stream_size;
+	size_t xattr_stream_size;
 	char *xattr_stream_name;
 	int rc;
 
-	xattr_stream_size = ksmbd_vfs_xattr_stream_name(stream_name,
-							&xattr_stream_name);
+	rc = ksmbd_vfs_xattr_stream_name(stream_name,
+					 &xattr_stream_name,
+					 &xattr_stream_size);
+	if (rc)
+		return rc;
 
 	fp->stream.name = xattr_stream_name;
 	fp->stream.type = s_type;
@@ -5048,8 +5051,11 @@ static int smb2_rename(struct ksmbd_work *work, struct ksmbd_file *fp,
 			goto out;
 		}
 
-		xattr_stream_size = ksmbd_vfs_xattr_stream_name(stream_name,
-							&xattr_stream_name);
+		rc = ksmbd_vfs_xattr_stream_name(stream_name,
+						 &xattr_stream_name,
+						 &xattr_stream_size);
+		if (rc)
+			goto out;
 
 		rc = ksmbd_vfs_setxattr(fp->filp->f_path.dentry,
 					xattr_stream_name,
