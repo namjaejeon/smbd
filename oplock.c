@@ -1190,25 +1190,24 @@ err_out:
  * @fp:		ksmbd file pointer
  * @openfile:	open file object
  */
-static int smb_break_all_write_oplock(struct ksmbd_work *work,
+static void smb_break_all_write_oplock(struct ksmbd_work *work,
 	struct ksmbd_file *fp, int is_trunc)
 {
 	struct oplock_info *brk_opinfo;
 
 	brk_opinfo = opinfo_get_list(fp->f_ci);
 	if (!brk_opinfo)
-		return 0;
+		return;
 	if (brk_opinfo->level != SMB2_OPLOCK_LEVEL_BATCH &&
 		brk_opinfo->level != SMB2_OPLOCK_LEVEL_EXCLUSIVE) {
 		opinfo_put(brk_opinfo);
-		return 0;
+		return;
 	}
 
 	brk_opinfo->open_trunc = is_trunc;
 	list_add(&work->interim_entry, &brk_opinfo->interim_list);
 	oplock_break(brk_opinfo, SMB2_OPLOCK_LEVEL_II);
 	opinfo_put(brk_opinfo);
-	return 1;
 }
 
 /**
@@ -1232,8 +1231,6 @@ void smb_break_all_levII_oplock(struct ksmbd_work *work,
 
 	ci = fp->f_ci;
 	op = opinfo_get(fp);
-	if (!op)
-		return;
 
 	rcu_read_lock();
 	list_for_each_entry_rcu(brk_op, &ci->m_op_list, op_entry) {
@@ -1259,7 +1256,7 @@ void smb_break_all_levII_oplock(struct ksmbd_work *work,
 		    atomic_read(&brk_op->breaking_cnt))
 			goto next;
 
-		if (op->is_lease &&
+		if (op && op->is_lease &&
 			brk_op->is_lease &&
 			!memcmp(conn->ClientGUID, brk_op->conn->ClientGUID,
 				SMB2_CLIENT_GUID_SIZE) &&
@@ -1275,7 +1272,8 @@ next:
 	}
 	rcu_read_unlock();
 
-	opinfo_put(op);
+	if (op)
+		opinfo_put(op);
 }
 
 /**
@@ -1285,15 +1283,12 @@ next:
  */
 void smb_break_all_oplock(struct ksmbd_work *work, struct ksmbd_file *fp)
 {
-	int ret;
-
 	if (!test_share_config_flag(work->tcon->share_conf,
 			KSMBD_SHARE_FLAG_OPLOCKS))
 		return;
 
-	ret = smb_break_all_write_oplock(work, fp, 1);
-	if (!ret)
-		smb_break_all_levII_oplock(work, fp, 1);
+	smb_break_all_write_oplock(work, fp, 1);
+	smb_break_all_levII_oplock(work, fp, 1);
 }
 
 /**
