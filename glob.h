@@ -18,11 +18,20 @@
 
 /* @FIXME clean up this code */
 
-extern int ksmbd_debugging;
+extern int ksmbd_debug_types;
 extern int ksmbd_caseless_search;
 
 #define DATA_STREAM	1
 #define DIR_STREAM	2
+
+#define SMB		(1 << 0)
+#define AUTH		(1 << 1)
+#define VFS		(1 << 2)
+#define OPLOCK		(1 << 3)
+#define IPC		(1 << 4)
+#define CONN		(1 << 5)
+#define RDMA		(1 << 6)
+#define ALL		(SMB | AUTH | VFS | OPLOCK | IPC | CONN | RDMA)
 
 #ifndef ksmbd_pr_fmt
 #ifdef SUBMOD_NAME
@@ -33,16 +42,16 @@ extern int ksmbd_caseless_search;
 #endif
 
 #ifdef CONFIG_SMB_SERVER_DEBUGGING
-#define ksmbd_debug(fmt, ...)					\
+#define ksmbd_debug(type, fmt, ...)				\
 	do {							\
-		if (ksmbd_debugging)				\
+		if (ksmbd_debug_types & type)			\
 			pr_info(ksmbd_pr_fmt("%s:%d: " fmt),	\
 				__func__,			\
 				__LINE__,			\
 				##__VA_ARGS__);			\
 	} while (0)
 #else
-#define ksmbd_debug(fmt, ...)	do { } while (0)
+#define ksmbd_debug(type, fmt, ...)	do { } while (0)
 #endif
 
 #define ksmbd_info(fmt, ...)					\
