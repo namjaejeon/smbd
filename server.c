@@ -456,8 +456,9 @@ static ssize_t kill_server_store(struct class *class,
 	return len;
 }
 
-char *debug_type_strings[] = {"smb", "auth", "vfs", "oplock", "ipc",
-                             "conn", "rdma"};
+static const char * const debug_type_strings[] = {"smb", "auth", "vfs",
+						"oplock", "ipc", "conn",
+						"rdma"};
 
 static ssize_t debug_show(struct class *class,
 		struct class_attribute *attr,
