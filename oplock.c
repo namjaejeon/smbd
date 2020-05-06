@@ -562,9 +562,13 @@ static int oplock_break_pending(struct oplock_info *opinfo, int req_op_level)
 {
 	while (test_and_set_bit(0, &opinfo->pending_break)) {
 		wait_on_bit(&opinfo->pending_break, 0, TASK_UNINTERRUPTIBLE);
+
+		/* Not immediately break to none. */
+		opinfo->open_trunc = 0;
+
 		if (opinfo->op_state == OPLOCK_CLOSING)
 			return -ENOENT;
-		else if (opinfo->level <= req_op_level)
+		else if (!opinfo->is_lease && opinfo->level <= req_op_level)
 			return 1;
 	}
 	return 0;
@@ -806,20 +810,6 @@ static int smb2_lease_break_noti(struct oplock_info *opinfo)
 		INIT_WORK(&work->work, __smb2_lease_break_noti);
 		ksmbd_queue_work(work);
 		wait_for_break_ack(opinfo);
-
-		if (!atomic_read(&opinfo->breaking_cnt))
-			wake_up_interruptible(&opinfo->oplock_brk);
-
-		if (atomic_read(&opinfo->breaking_cnt)) {
-			int ret = 0;
-
-			ret = wait_event_interruptible_timeout(
-				opinfo->oplock_brk,
-				atomic_read(&opinfo->breaking_cnt) == 0,
-				OPLOCK_WAIT_TIME);
-			if (!ret)
-				atomic_set(&opinfo->breaking_cnt, 0);
-		}
 	} else {
 		atomic_inc(&conn->r_count);
 		__smb2_lease_break_noti(&work->work);
@@ -829,6 +819,23 @@ static int smb2_lease_break_noti(struct oplock_info *opinfo)
 		}
 	}
 	return 0;
+}
+
+static void wait_lease_breaking(struct oplock_info *opinfo)
+{
+	if (!atomic_read(&opinfo->breaking_cnt))
+		wake_up_interruptible(&opinfo->oplock_brk);
+
+	if (atomic_read(&opinfo->breaking_cnt)) {
+		int ret = 0;
+
+		ret = wait_event_interruptible_timeout(
+			opinfo->oplock_brk,
+			atomic_read(&opinfo->breaking_cnt) == 0,
+			HZ);
+		if (!ret)
+			atomic_set(&opinfo->breaking_cnt, 0);
+	}
 }
 
 static int oplock_break(struct oplock_info *brk_opinfo, int req_op_level)
@@ -845,13 +852,9 @@ static int oplock_break(struct oplock_info *brk_opinfo, int req_op_level)
 		if (!(lease->state == SMB2_LEASE_READ_CACHING_LE))
 			atomic_inc(&brk_opinfo->breaking_cnt);
 
-		if (brk_opinfo->op_state == OPLOCK_ACK_WAIT) {
-			/* wait till getting break ack */
-			wait_for_break_ack(brk_opinfo);
-
-			/* Not immediately break to none. */
-			brk_opinfo->open_trunc = 0;
-		}
+		err = oplock_break_pending(brk_opinfo, req_op_level);
+		if (err)
+			return err < 0 ? err : 0;
 
 		if (brk_opinfo->open_trunc) {
 			/*
@@ -899,8 +902,10 @@ static int oplock_break(struct oplock_info *brk_opinfo, int req_op_level)
 	ksmbd_debug("oplock granted = %d\n", brk_opinfo->level);
 	if (brk_opinfo->op_state == OPLOCK_CLOSING)
 		err = -ENOENT;
-	if (!brk_opinfo->is_lease)
-		wake_up_oplock_break(brk_opinfo);
+	wake_up_oplock_break(brk_opinfo);
+
+	wait_lease_breaking(brk_opinfo);
+
 	return err;
 }
 
