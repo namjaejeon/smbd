@@ -540,6 +540,24 @@ static struct oplock_info *same_client_has_lease(struct ksmbd_inode *ci,
 	return m_opinfo;
 }
 
+static void wait_for_break_ack(struct oplock_info *opinfo)
+{
+	int rc = 0;
+
+	rc = wait_event_interruptible_timeout(opinfo->oplock_q,
+		opinfo->op_state == OPLOCK_STATE_NONE ||
+		opinfo->op_state == OPLOCK_CLOSING,
+		OPLOCK_WAIT_TIME);
+
+	/* is this a timeout ? */
+	if (!rc) {
+		if (opinfo->is_lease)
+			opinfo->o_lease->state = SMB2_LEASE_NONE_LE;
+		opinfo->level = SMB2_OPLOCK_LEVEL_NONE;
+		opinfo->op_state = OPLOCK_STATE_NONE;
+	}
+}
+
 static int oplock_break_pending(struct oplock_info *opinfo, int req_op_level)
 {
 	while (test_and_set_bit(0, &opinfo->pending_break)) {
@@ -668,22 +686,11 @@ static int smb2_oplock_break_noti(struct oplock_info *opinfo)
 	work->sess = opinfo->sess;
 
 	if (opinfo->op_state == OPLOCK_ACK_WAIT) {
-		int rc;
-
 		atomic_inc(&conn->r_count);
 		INIT_WORK(&work->work, __smb2_oplock_break_noti);
 		ksmbd_queue_work(work);
 
-		rc = wait_event_interruptible_timeout(opinfo->oplock_q,
-			opinfo->op_state == OPLOCK_STATE_NONE ||
-			opinfo->op_state == OPLOCK_CLOSING,
-			OPLOCK_WAIT_TIME);
-
-		/* is this a timeout ? */
-		if (!rc) {
-			opinfo->level = SMB2_OPLOCK_LEVEL_NONE;
-			opinfo->op_state = OPLOCK_STATE_NONE;
-		}
+		wait_for_break_ack(opinfo);
 	} else {
 		atomic_inc(&conn->r_count);
 		__smb2_oplock_break_noti(&work->work);
@@ -691,24 +698,6 @@ static int smb2_oplock_break_noti(struct oplock_info *opinfo)
 			opinfo->level = SMB2_OPLOCK_LEVEL_NONE;
 	}
 	return ret;
-}
-
-static void wait_for_lease_break_ack(struct oplock_info *opinfo)
-{
-	int rc = 0;
-
-	rc = wait_event_interruptible_timeout(opinfo->oplock_q,
-		opinfo->op_state == OPLOCK_STATE_NONE ||
-		opinfo->op_state == OPLOCK_CLOSING,
-		OPLOCK_WAIT_TIME);
-
-	/* is this a timeout ? */
-	if (!rc) {
-		if (opinfo->is_lease)
-			opinfo->o_lease->state = SMB2_LEASE_NONE_LE;
-		opinfo->level = SMB2_OPLOCK_LEVEL_NONE;
-		opinfo->op_state = OPLOCK_STATE_NONE;
-	}
 }
 
 /**
@@ -816,7 +805,7 @@ static int smb2_lease_break_noti(struct oplock_info *opinfo)
 		atomic_inc(&conn->r_count);
 		INIT_WORK(&work->work, __smb2_lease_break_noti);
 		ksmbd_queue_work(work);
-		wait_for_lease_break_ack(opinfo);
+		wait_for_break_ack(opinfo);
 
 		if (!atomic_read(&opinfo->breaking_cnt))
 			wake_up_interruptible(&opinfo->oplock_brk);
@@ -858,7 +847,7 @@ static int oplock_break(struct oplock_info *brk_opinfo, int req_op_level)
 
 		if (brk_opinfo->op_state == OPLOCK_ACK_WAIT) {
 			/* wait till getting break ack */
-			wait_for_lease_break_ack(brk_opinfo);
+			wait_for_break_ack(brk_opinfo);
 
 			/* Not immediately break to none. */
 			brk_opinfo->open_trunc = 0;
