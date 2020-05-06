@@ -540,7 +540,7 @@ static struct oplock_info *same_client_has_lease(struct ksmbd_inode *ci,
 	return m_opinfo;
 }
 
-static int wait_for_oplock_break(struct oplock_info *opinfo, int req_op_level)
+static int oplock_break_pending(struct oplock_info *opinfo, int req_op_level)
 {
 	while (test_and_set_bit(0, &opinfo->pending_break)) {
 		wait_on_bit(&opinfo->pending_break, 0, TASK_UNINTERRUPTIBLE);
@@ -893,7 +893,7 @@ static int oplock_break(struct oplock_info *brk_opinfo, int req_op_level)
 				SMB2_LEASE_HANDLE_CACHING_LE))
 			brk_opinfo->op_state = OPLOCK_ACK_WAIT;
 	} else {
-		err = wait_for_oplock_break(brk_opinfo, req_op_level);
+		err = oplock_break_pending(brk_opinfo, req_op_level);
 		if (err)
 			return err < 0 ? err : 0;
 
