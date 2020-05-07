@@ -312,7 +312,7 @@ static void parse_dacl(struct smb_acl *pdacl, char *end_of_acl,
  * Fill in the special SID based on the mode. See
  * http://technet.microsoft.com/en-us/library/hh509017(v=ws.10).aspx
  */
-unsigned int setup_special_mode_ACE(struct smb_ace *pntace, umode_t mode)
+static unsigned int setup_special_mode_ACE(struct smb_ace *pntace, umode_t mode)
 {
 	int i;
 	unsigned int ace_size = 28;
