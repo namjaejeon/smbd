@@ -639,11 +639,13 @@ int ksmbd_vfs_remove_file(struct ksmbd_work *work, char *name)
 	if (S_ISDIR(d_inode(dentry)->i_mode)) {
 		err = vfs_rmdir(d_inode(dir), dentry);
 		if (err && err != -ENOTEMPTY)
-			ksmbd_debug(VFS, "%s: rmdir failed, err %d\n", name, err);
+			ksmbd_debug(VFS, "%s: rmdir failed, err %d\n", name,
+				err);
 	} else {
 		err = vfs_unlink(d_inode(dir), dentry, NULL);
 		if (err)
-			ksmbd_debug(VFS, "%s: unlink failed, err %d\n", name, err);
+			ksmbd_debug(VFS, "%s: unlink failed, err %d\n", name,
+				err);
 	}
 
 	dput(dentry);
