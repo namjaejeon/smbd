@@ -2,7 +2,7 @@
 /*
  *   Copyright (C) International Business Machines  Corp., 2007,2008
  *   Author(s): Steve French (sfrench@us.ibm.com)
- *   Copyright (C) 2020 Namjae Jeon <linkinjeon@gmail.com>
+ *   Modified by Namjae Jeon <linkinjeon@kernel.org>
  */
 
 #include <linux/fs.h>
