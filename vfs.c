@@ -1268,7 +1268,9 @@ static int __dir_empty(struct dir_context *ctx,
 int ksmbd_vfs_empty_dir(struct ksmbd_file *fp)
 {
 	int err;
-	struct ksmbd_readdir_data readdir_data = {0};
+	struct ksmbd_readdir_data readdir_data;
+
+	memset(&readdir_data, 0, sizeof(struct ksmbd_readdir_data));
 
 	set_ctx_actor(&readdir_data.ctx, __dir_empty);
 	readdir_data.dirent_count = 0;
