@@ -213,6 +213,7 @@ struct smb2_negotiate_req {
 
 /* SecurityMode flags */
 #define SMB2_NEGOTIATE_SIGNING_ENABLED_LE	cpu_to_le16(0x0001)
+#define SMB2_NEGOTIATE_SIGNING_REQUIRED		0x0002
 #define SMB2_NEGOTIATE_SIGNING_REQUIRED_LE	cpu_to_le16(0x0002)
 /* Capabilities flags */
 #define SMB2_GLOBAL_CAP_DFS		0x00000001

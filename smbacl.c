@@ -432,6 +432,6 @@ int build_sec_desc(struct smb_ntsd *pntsd, __u32 *secdesclen, umode_t nmode)
 					sizeof(struct smb_sid));
 	smb_copy_sid(group_sid_ptr, &sid_unix_NFS_groups);
 
-	*secdesclen = pntsd->gsidoffset + sizeof(struct smb_sid);
+	*secdesclen = le32_to_cpu(pntsd->gsidoffset) + sizeof(struct smb_sid);
 	return rc;
 }

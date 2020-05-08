@@ -1398,7 +1398,7 @@ static int ntlm_authenticate(struct ksmbd_work *work)
 			return 0;
 
 		if ((conn->sign || server_conf.enforced_signing) ||
-		     (req->SecurityMode & SMB2_NEGOTIATE_SIGNING_REQUIRED_LE))
+		     (req->SecurityMode & SMB2_NEGOTIATE_SIGNING_REQUIRED))
 			sess->sign = true;
 
 		if (conn->vals->capabilities & SMB2_GLOBAL_CAP_ENCRYPTION &&
@@ -2474,7 +2474,7 @@ int smb2_open(struct ksmbd_work *work)
 
 	if (req->CreateDisposition > FILE_OVERWRITE_IF_LE) {
 		ksmbd_err("Invalid create disposition : 0x%x\n",
-			req->CreateDisposition);
+			le32_to_cpu(req->CreateDisposition));
 		rc = -EINVAL;
 		goto err_out1;
 	}
@@ -5252,7 +5252,7 @@ static int set_file_basic_info(struct ksmbd_file *fp,
 		struct kstat stat;
 
 		if (!S_ISDIR(inode->i_mode) &&
-				file_info->Attributes == ATTR_DIRECTORY) {
+				file_info->Attributes == ATTR_DIRECTORY_LE) {
 			ksmbd_err("can't change a file to a directory\n");
 			return -EINVAL;
 		}
