@@ -6795,9 +6795,9 @@ out:
 	return ret;
 }
 
-static unsigned int idev_ipv4_address(struct in_device *idev)
+static __be32 idev_ipv4_address(struct in_device *idev)
 {
-	unsigned int addr = 0;
+	__be32 addr = 0;
 
 	struct in_ifaddr *ifa;
 
@@ -7273,13 +7273,14 @@ out:
  *
  * Return:	0
  */
-static int smb20_oplock_break_ack(struct ksmbd_work *work)
+static void smb20_oplock_break_ack(struct ksmbd_work *work)
 {
 	struct smb2_oplock_break *req = REQUEST_BUF(work);
 	struct smb2_oplock_break *rsp = RESPONSE_BUF(work);
 	struct ksmbd_file *fp;
 	struct oplock_info *opinfo = NULL;
-	int err = 0, ret = 0;
+	__le32 err = 0;
+	int ret = 0;
 	uint64_t volatile_id, persistent_id;
 	char req_oplevel = 0, rsp_oplevel = 0;
 	unsigned int oplock_change_type;
@@ -7294,7 +7295,7 @@ static int smb20_oplock_break_ack(struct ksmbd_work *work)
 	if (!fp) {
 		rsp->hdr.Status = STATUS_FILE_CLOSED;
 		smb2_set_err_rsp(work);
-		return 0;
+		return;
 	}
 
 	opinfo = opinfo_get(fp);
@@ -7303,7 +7304,7 @@ static int smb20_oplock_break_ack(struct ksmbd_work *work)
 		rsp->hdr.Status = STATUS_INVALID_OPLOCK_PROTOCOL;
 		smb2_set_err_rsp(work);
 		ksmbd_fd_put(work, fp);
-		return 0;
+		return;
 	}
 
 	if (opinfo->level == SMB2_OPLOCK_LEVEL_NONE) {
@@ -7381,13 +7382,12 @@ static int smb20_oplock_break_ack(struct ksmbd_work *work)
 	rsp->VolatileFid = cpu_to_le64(volatile_id);
 	rsp->PersistentFid = cpu_to_le64(persistent_id);
 	inc_rfc1001_len(rsp, 24);
-	return 0;
+	return;
 
 err_out:
 	opinfo_put(opinfo);
 	ksmbd_fd_put(work, fp);
 	smb2_set_err_rsp(work);
-	return 0;
 }
 
 static int check_lease_state(struct lease *lease, __le32 req_state)
@@ -7411,13 +7411,14 @@ static int check_lease_state(struct lease *lease, __le32 req_state)
  *
  * Return:	0
  */
-static int smb21_lease_break_ack(struct ksmbd_work *work)
+static void smb21_lease_break_ack(struct ksmbd_work *work)
 {
 	struct ksmbd_conn *conn = work->conn;
 	struct smb2_lease_ack *req = REQUEST_BUF(work);
 	struct smb2_lease_ack *rsp = RESPONSE_BUF(work);
 	struct oplock_info *opinfo;
-	int err = 0, ret = 0;
+	__le32 err = 0;
+	int ret = 0;
 	unsigned int lease_change_type;
 	__le32 lease_state;
 	struct lease *lease;
@@ -7429,7 +7430,7 @@ static int smb21_lease_break_ack(struct ksmbd_work *work)
 		ksmbd_debug(OPLOCK, "file not opened\n");
 		smb2_set_err_rsp(work);
 		rsp->hdr.Status = STATUS_UNSUCCESSFUL;
-		return 0;
+		return;
 	}
 	lease = opinfo->o_lease;
 
@@ -7526,12 +7527,11 @@ static int smb21_lease_break_ack(struct ksmbd_work *work)
 	rsp->LeaseState = lease_state;
 	rsp->LeaseDuration = 0;
 	inc_rfc1001_len(rsp, 36);
-	return 0;
+	return;
 
 err_out:
 	opinfo_put(opinfo);
 	smb2_set_err_rsp(work);
-	return 0;
 }
 
 /**
@@ -7544,30 +7544,21 @@ int smb2_oplock_break(struct ksmbd_work *work)
 {
 	struct smb2_oplock_break *req = REQUEST_BUF(work);
 	struct smb2_oplock_break *rsp = RESPONSE_BUF(work);
-	int err;
 
 	switch (le16_to_cpu(req->StructureSize)) {
 	case OP_BREAK_STRUCT_SIZE_20:
-		err = smb20_oplock_break_ack(work);
+		smb20_oplock_break_ack(work);
 		break;
 	case OP_BREAK_STRUCT_SIZE_21:
-		err = smb21_lease_break_ack(work);
+		smb21_lease_break_ack(work);
 		break;
 	default:
 		ksmbd_debug(OPLOCK, "invalid break cmd %d\n",
 			le16_to_cpu(req->StructureSize));
-		err = STATUS_INVALID_PARAMETER;
-		goto err_out;
+		rsp->hdr.Status = STATUS_INVALID_PARAMETER;
+		smb2_set_err_rsp(work);
 	}
 
-	if (err)
-		goto err_out;
-
-	return 0;
-
-err_out:
-	rsp->hdr.Status = err;
-	smb2_set_err_rsp(work);
 	return 0;
 }
 

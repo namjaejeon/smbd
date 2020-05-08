@@ -409,7 +409,7 @@ int build_sec_desc(struct smb_ntsd *pntsd, __u32 *secdesclen, umode_t nmode)
 
 	dacloffset = sizeof(struct smb_ntsd);
 	dacl_ptr = (struct smb_acl *)((char *)pntsd + dacloffset);
-	dacl_ptr->revision = 1;
+	dacl_ptr->revision = cpu_to_le16(1);
 	dacl_ptr->size = 0;
 	dacl_ptr->num_aces = 0;
 

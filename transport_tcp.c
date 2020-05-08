@@ -411,7 +411,7 @@ static int create_socket(struct interface *iface)
 		}
 
 		sin.sin_family = PF_INET;
-		sin.sin_addr.s_addr = INADDR_ANY;
+		sin.sin_addr.s_addr = htonl(INADDR_ANY);
 		sin.sin_port = htons(server_conf.tcp_port);
 		ipv4 = true;
 	} else {

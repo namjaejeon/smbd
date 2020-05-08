@@ -873,16 +873,16 @@ struct validate_negotiate_info_rsp {
 } __packed;
 
 struct smb_sockaddr_in {
-	__le16 Port;
-	__le32 IPv4address;
+	__be16 Port;
+	__be32 IPv4address;
 	__u8 Reserved[8];
 } __packed;
 
 struct smb_sockaddr_in6 {
-	__le16 Port;
-	__le32 FlowInfo;
+	__be16 Port;
+	__be32 FlowInfo;
 	__u8 IPv6address[16];
-	__le32 ScopeId;
+	__be32 ScopeId;
 } __packed;
 
 #define INTERNETWORK	0x0002
