@@ -2439,7 +2439,8 @@ int smb2_open(struct ksmbd_work *work)
 			lc = parse_lease_state(req);
 	}
 
-	if (req->ImpersonationLevel > IL_DELEGATE) {
+	if (le32_to_cpu(req->ImpersonationLevel) >
+			le32_to_cpu(IL_DELEGATE_LE)) {
 		ksmbd_err("Invalid impersonationlevel : 0x%x\n",
 			le32_to_cpu(req->ImpersonationLevel));
 		rc = -EIO;
@@ -2473,7 +2474,8 @@ int smb2_open(struct ksmbd_work *work)
 		}
 	}
 
-	if (req->CreateDisposition > FILE_OVERWRITE_IF_LE) {
+	if (le32_to_cpu(req->CreateDisposition) >
+			le32_to_cpu(FILE_OVERWRITE_IF_LE)) {
 		ksmbd_err("Invalid create disposition : 0x%x\n",
 			le32_to_cpu(req->CreateDisposition));
 		rc = -EINVAL;
