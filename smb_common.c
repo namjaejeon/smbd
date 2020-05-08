@@ -406,7 +406,7 @@ static int __smb2_negotiate(struct ksmbd_conn *conn)
 			conn->dialect <= SMB311_PROT_ID);
 }
 
-int smb_handle_negotiate(struct ksmbd_work *work)
+static int smb_handle_negotiate(struct ksmbd_work *work)
 {
 	struct smb_negotiate_rsp *neg_rsp = RESPONSE_BUF(work);
 
