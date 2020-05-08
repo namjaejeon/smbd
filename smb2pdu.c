@@ -2325,6 +2325,7 @@ int smb2_open(struct ksmbd_work *work)
 	struct create_context *lease_ccontext = NULL, *durable_ccontext = NULL,
 		*mxac_ccontext = NULL, *disk_id_ccontext = NULL;
 	struct create_ea_buf_req *ea_buf = NULL;
+	struct oplock_info *opinfo;
 	__le32 *next_ptr = NULL;
 	int req_op_level = 0, open_flags = 0, file_info = 0;
 	int rc = 0, len = 0;
@@ -2905,7 +2906,8 @@ reconnected:
 	generic_fillattr(FP_INODE(fp), &stat);
 
 	rsp->StructureSize = cpu_to_le16(89);
-	rsp->OplockLevel = fp->f_opinfo != NULL ? fp->f_opinfo->level : 0;
+	opinfo = rcu_dereference(fp->f_opinfo);
+	rsp->OplockLevel = opinfo != NULL ? opinfo->level : 0;
 	rsp->Reserved = 0;
 	rsp->CreateAction = cpu_to_le32(file_info);
 	rsp->CreationTime = cpu_to_le64(fp->create_time);
@@ -2930,14 +2932,14 @@ reconnected:
 	inc_rfc1001_len(rsp_org, 88); /* StructureSize - 1*/
 
 	/* If lease is request send lease context response */
-	if (fp->f_opinfo && fp->f_opinfo->is_lease) {
+	if (opinfo && opinfo->is_lease) {
 		ksmbd_debug(SMB, "lease granted on(%s) lease state 0x%x\n",
-				name, fp->f_opinfo->o_lease->state);
+				name, opinfo->o_lease->state);
 		rsp->OplockLevel = SMB2_OPLOCK_LEVEL_LEASE;
 
 		lease_ccontext = (struct create_context *)rsp->Buffer;
 		contxt_cnt++;
-		create_lease_buf(rsp->Buffer, fp->f_opinfo->o_lease);
+		create_lease_buf(rsp->Buffer, opinfo->o_lease);
 		le32_add_cpu(&rsp->CreateContextsLength,
 			     conn->vals->create_lease_size);
 		inc_rfc1001_len(rsp_org, conn->vals->create_lease_size);
