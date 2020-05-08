@@ -130,10 +130,6 @@ int ksmbd_vfs_read(struct ksmbd_work *work, struct ksmbd_file *fp,
 		 size_t count, loff_t *pos);
 int ksmbd_vfs_write(struct ksmbd_work *work, struct ksmbd_file *fp,
 	char *buf, size_t count, loff_t *pos, bool sync, ssize_t *written);
-int ksmbd_vfs_getattr(struct ksmbd_work *work, uint64_t fid,
-		struct kstat *stat);
-int ksmbd_vfs_setattr(struct ksmbd_work *work, const char *name,
-		uint64_t fid, struct iattr *attrs);
 int ksmbd_vfs_fsync(struct ksmbd_work *work, uint64_t fid, uint64_t p_id);
 int ksmbd_vfs_remove_file(struct ksmbd_work *work, char *name);
 int ksmbd_vfs_link(struct ksmbd_work *work,
@@ -216,11 +212,6 @@ int ksmbd_vfs_unlink(struct dentry *dir, struct dentry *dentry);
 unsigned short ksmbd_vfs_logical_sector_size(struct inode *inode);
 void ksmbd_vfs_smb2_sector_size(struct inode *inode,
 				struct ksmbd_fs_sector_size *fs_ss);
-int ksmbd_vfs_readdir_name(struct ksmbd_work *work,
-			   struct ksmbd_kstat *ksmbd_kstat,
-			   const char *de_name,
-			   int de_name_len,
-			   const char *dir_path);
 void *ksmbd_vfs_init_kstat(char **p, struct ksmbd_kstat *ksmbd_kstat);
 
 int ksmbd_vfs_fill_dentry_attrs(struct ksmbd_work *work,
