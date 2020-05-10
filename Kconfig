@@ -16,6 +16,7 @@ config SMB_SERVER
 	select CRYPTO_AEAD2
 	select CRYPTO_CCM
 	select CRYPTO_GCM
+	default n
 	help
 	  Choose Y here if you want to allow SMB3 compliant clients
 	  to access files residing on this system using SMB3 protocol.
