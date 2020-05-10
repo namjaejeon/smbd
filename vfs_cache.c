@@ -707,24 +707,24 @@ struct ksmbd_file *ksmbd_open_fd(struct ksmbd_work *work,
 static inline bool is_reconnectable(struct ksmbd_file *fp)
 {
 	struct oplock_info *opinfo = opinfo_get(fp);
-	int reconn = 0;
+	bool reconn = false;
 
 	if (!opinfo)
-		return 0;
+		return false;
 
 	if (opinfo->op_state != OPLOCK_STATE_NONE) {
 		opinfo_put(opinfo);
-		return 0;
+		return false;
 	}
 
 	if (fp->is_resilient || fp->is_persistent)
-		reconn = 1;
+		reconn = true;
 	else if (fp->is_durable && opinfo->is_lease &&
 			opinfo->o_lease->state & SMB2_LEASE_HANDLE_CACHING_LE)
-		reconn = 1;
+		reconn = true;
 
 	else if (fp->is_durable && opinfo->level == SMB2_OPLOCK_LEVEL_BATCH)
-		reconn = 1;
+		reconn = true;
 
 	opinfo_put(opinfo);
 	return reconn;
