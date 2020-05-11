@@ -1088,7 +1088,7 @@ int smb2_handle_negotiate(struct ksmbd_work *work)
 	case SMB2X_PROT_ID:
 	case BAD_PROT_ID:
 	default:
-		ksmbd_err("Server dialect :0x%x not supported\n",
+		ksmbd_debug(SMB, "Server dialect :0x%x not supported\n",
 			conn->dialect);
 		rsp->hdr.Status = STATUS_NOT_SUPPORTED;
 		rc = -EINVAL;
@@ -3789,7 +3789,7 @@ static int smb2_get_info_file_pipe(struct ksmbd_session *sess,
 			rsp, FILE_INTERNAL_INFORMATION_SIZE);
 		break;
 	default:
-		ksmbd_err("smb2_info_file_pipe for %u not supported\n",
+		ksmbd_debug(SMB, "smb2_info_file_pipe for %u not supported\n",
 			req->FileInfoClass);
 		rc = -EOPNOTSUPP;
 	}
