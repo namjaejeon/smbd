@@ -1,5 +1,5 @@
 config SMB_SERVER
-	tristate "SMB server support"
+	tristate "SMB server support (EXPERIMENTAL)"
 	depends on INET
 	select NLS
 	select NLS_UTF8
