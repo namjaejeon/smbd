@@ -86,7 +86,7 @@ static struct smb_direct_listener {
 } smb_direct_listener;
 
 
-struct workqueue_struct *smb_direct_wq;
+static struct workqueue_struct *smb_direct_wq;
 
 enum smb_direct_status {
 	SMB_DIRECT_CS_NEW = 0,
