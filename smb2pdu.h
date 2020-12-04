@@ -283,6 +283,8 @@ struct smb2_preauth_neg_context {
 /* Encryption Algorithms Ciphers */
 #define SMB2_ENCRYPTION_AES128_CCM	cpu_to_le16(0x0001)
 #define SMB2_ENCRYPTION_AES128_GCM	cpu_to_le16(0x0002)
+#define SMB2_ENCRYPTION_AES256_CCM	cpu_to_le16(0x0003)
+#define SMB2_ENCRYPTION_AES256_GCM	cpu_to_le16(0x0004)
 
 struct smb2_encryption_neg_context {
 	__le16	ContextType; /* 2 */
