@@ -224,6 +224,7 @@ static int ksmbd_tcp_new_connection(struct socket *client_sk)
 		rc = -EINVAL;
 		goto out_error;
 	}
+
 	KSMBD_TRANS(t)->handler = kthread_run(ksmbd_conn_handler_loop,
 					      KSMBD_TRANS(t)->conn,
 					      "ksmbd:%u",
