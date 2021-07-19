@@ -300,7 +300,7 @@ struct smb2_encryption_neg_context {
 	__le32	Reserved;
 	/* CipherCount usally 2, but can be 3 when AES256-GCM enabled */
 	__le16	CipherCount; /* AES-128-GCM and AES-128-CCM by default */
-	__le16	Ciphers[1];
+	__le16	Ciphers[];
 } __packed;
 
 #define SMB3_COMPRESS_NONE	cpu_to_le16(0x0000)
@@ -315,7 +315,7 @@ struct smb2_compression_ctx {
 	__le16	CompressionAlgorithmCount;
 	__u16	Padding;
 	__le32	Reserved1;
-	__le16	CompressionAlgorithms[1];
+	__le16	CompressionAlgorithms[];
 } __packed;
 
 #define POSIX_CTXT_DATA_LEN     16
@@ -330,7 +330,7 @@ struct smb2_netname_neg_context {
 	__le16	ContextType; /* 0x100 */
 	__le16	DataLength;
 	__le32	Reserved;
-	__le16	NetName[0]; /* hostname of target converted to UCS-2 */
+	__le16	NetName[]; /* hostname of target converted to UCS-2 */
 } __packed;
 
 /* Signing algorithms */
